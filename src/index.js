@@ -15,7 +15,7 @@ const State = (defaults) => {
 
             const get = (cb, err) => {
                 const p = new Promise((resolve, reject) => {
-                    let value = getDeep(info, path);
+                    let value = getDeep({ ...info }, path);
 
                     if (value === undefined) {
                         if (err) err();
@@ -36,11 +36,11 @@ const State = (defaults) => {
                     if (cb) cb();
 
                     let split = path.split(".");
-                    for (let i = 0; i < split.length; i++) {
+                    for (let i = split.length - 1; i >= 0; i--) {
                         let subPath = split.slice(0, i + 1).join(".");
                         if (listeners[subPath]) {
                             listeners[subPath].forEach((listenerCB) =>
-                                listenerCB(val)
+                                listenerCB(getDeep({ ...info }, subPath))
                             );
                         }
                     }
