@@ -1,0 +1,24 @@
+{
+  "name": "statetrack",
+  "version": "1.0.0",
+  "description": "A local json database for making framework-less web apps",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/benschoel/statetrack.git"
+  },
+  "author": "Ben Schoelkopf",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/benschoel/statetrack/issues"
+  },
+  "homepage": "https://github.com/benschoel/statetrack#readme",
+  "dependencies": {
+    "get-value": "^3.0.1",
+    "set-value": "^3.0.2",
+    "unset-value": "^1.0.0"
+  }
+}
