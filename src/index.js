@@ -13,18 +13,37 @@ const State = (defaults) => {
         return (secondary) => {
             const path = (primary !== "" ? primary + "." : "") + secondary;
 
-            const get = (cb, err) => {
-                const p = new Promise((resolve, reject) => {
+            const update = () => {
+                let split = path.split(".");
+                for (let i = split.length - 1; i >= 0; i--) {
+                    let subPath = split.slice(0, i + 1).join(".");
+                    if (listeners[subPath]) {
+                        listeners[subPath].forEach((listenerCB) =>
+                            listenerCB(getDeep({ ...info }, subPath))
+                        );
+                    }
+                }
+            };
+
+            const getRandomID = () => {
+                let val = getDeep({ ...info }, path);
+                let id = Math.random().toString(36).substr(2, 9);
+                if (
+                    val &&
+                    typeof val === "object" &&
+                    Object.keys(val).includes(id)
+                )
+                    return getRandomID();
+
+                return id;
+            };
+
+            const get = (cb) => {
+                const p = new Promise((resolve) => {
                     let value = getDeep({ ...info }, path);
 
-                    if (value === undefined) {
-                        if (err) err();
-                        resolve();
-                        reject();
-                    } else {
-                        if (cb) cb(value);
-                        resolve(value);
-                    }
+                    if (cb) cb(value);
+                    resolve(value);
                 });
 
                 return p;
@@ -33,27 +52,38 @@ const State = (defaults) => {
             const set = (val, cb) => {
                 const p = new Promise((resolve) => {
                     info = setDeep({ ...info }, path, val);
+
+                    update();
+
                     if (cb) cb();
-
-                    let split = path.split(".");
-                    for (let i = split.length - 1; i >= 0; i--) {
-                        let subPath = split.slice(0, i + 1).join(".");
-                        if (listeners[subPath]) {
-                            listeners[subPath].forEach((listenerCB) =>
-                                listenerCB(getDeep({ ...info }, subPath))
-                            );
-                        }
-                    }
-
                     resolve();
                 });
 
                 return p;
             };
 
-            const del = (cb, err) => {};
+            const del = (cb) => {
+                const p = new Promise((resolve) => {
+                    info = deleteDeep({ ...info }, path);
 
-            const push = (cb, err) => {};
+                    update();
+
+                    if (cb) cb();
+                    resolve();
+                });
+
+                return p;
+            };
+
+            const push = (val) => {
+                let valAtPath = getDeep({ ...info }, path);
+
+                let s = source(path)(getRandomID());
+
+                if (val) s.set(val);
+
+                return s;
+            };
 
             const listen = (cb) => {
                 listeners[path] = (listeners[path] || []).concat(cb);
@@ -69,6 +99,8 @@ const State = (defaults) => {
                 );
             };
 
+            const getKey = () => secondary;
+
             return {
                 source: source(path),
                 get,
@@ -77,6 +109,7 @@ const State = (defaults) => {
                 push,
                 listen,
                 removeListener,
+                getKey,
             };
         };
     };
